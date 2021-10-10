@@ -1,0 +1,55 @@
+package com.example.postrequest
+
+import android.app.ProgressDialog
+import android.content.Intent
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+
+class MainActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val textView = findViewById<TextView>(R.id.textView)
+        val addNew = findViewById<Button>(R.id.button2)
+        val apiInterface = APIClient().getClient()?.create(APIInterface::class.java)
+
+        //progress
+        val progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Please wait")
+        progressDialog.show()
+
+        val call: Call<List<Users.UserDetails>> = apiInterface!!.getUser()
+
+        call?.enqueue(object : Callback<List<Users.UserDetails>> {
+            override fun onResponse(
+                    call: Call<List<Users.UserDetails>>,
+                    response: Response<List<Users.UserDetails>>
+            )
+            {
+                progressDialog.dismiss()
+                val resource: List<Users.UserDetails>? = response.body()
+                var userData:String? = "";
+                for(User in resource!!){
+                    userData = userData +User.name+ "\n"+User.location + "\n"+"\n"
+                }
+                textView.text= userData
+            }
+            override fun onFailure(call: Call<List<Users.UserDetails>>, t: Throwable) {
+                progressDialog.dismiss()
+                Toast.makeText(applicationContext, ""+t.message, Toast.LENGTH_SHORT).show();
+            }
+        })
+
+        addNew.setOnClickListener {
+                intent = Intent(applicationContext, MainActivity2::class.java)
+                startActivity(intent)
+        }
+        }
+    }
